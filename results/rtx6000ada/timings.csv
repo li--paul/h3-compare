@@ -1,0 +1,4 @@
+label,seed,total_compute_s,conditioning_s,sampling_total_s,step_median_s,step_min_s,step_max_s,vae_video_s,vae_audio_s,save_s,wall_s,output
+cold,1001,217.72,5.71,182.37,23.54,18.03,24.20,22.78,0.22,2.00,217.72,/home/acm/work/nv_h3/output/bench/h3_ref2va_1376x768_00001_.mp4
+warm,1002,223.33,5.03,189.26,24.04,19.88,24.78,22.70,0.15,1.79,223.54,/home/acm/work/nv_h3/output/bench/h3_ref2va_1376x768_00002_.mp4
+warm,1003,223.57,5.09,189.28,24.15,19.78,24.54,22.63,0.18,1.98,223.77,/home/acm/work/nv_h3/output/bench/h3_ref2va_1376x768_00003_.mp4

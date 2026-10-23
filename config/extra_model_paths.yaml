@@ -1,0 +1,9 @@
+h3bench:
+  diffusion_models: |
+    /home/acm/work/nv_h3/models/diffusion_models
+  text_encoders: |
+    /home/acm/work/nv_h3/models/text_encoders
+  vae: |
+    /home/acm/work/nv_h3/models/vae
+  loras: |
+    /home/acm/work/nv_h3/models/loras

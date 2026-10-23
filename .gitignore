@@ -1,0 +1,12 @@
+# Large/local-only artifacts
+models/
+logs/
+tmp/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Incomplete downloads
+*.incomplete

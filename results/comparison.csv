@@ -1,0 +1,8 @@
+scope,gpu,host,resolution,vram,power_limit,kernel,per_step_raw_s,per_step_1376_s,sampling_8step_s,conditioning_s,vae_s,segment_s,wall_s,peak_vram_mib,peak_power_w,avg_power_w,energy_per_step_j,s_per_gpx,segments_per_hour,wh_per_segment,notes
+same-host,Intel Arc Pro B60,本机,1376x768,24 GB,—,INT8 ConvRot / XPU 反量化→BF16,70.00,70.00,563.00,16.40,73.60,653.00,653.00,20685,181.0,148.0,12670,4983.24,5.51,26.85,ComfyUI 0.39.0 + JZL 节点
+same-host,NVIDIA RTX 6000 Ada Generation,本机,1376x768,48.0 GB,300.00 W,INT8 ConvRot / CUDA INT8 GEMM,24.04,24.04,189.26,5.09,22.85,223.33,223.33,48357,303.5,297.3,7149,1704.31,16.12,18.45,默认（--bf16-vae）
+same-host,NVIDIA RTX PRO 4500 Blackwell,本机,1376x768,31.9 GB,200.00 W,INT8 ConvRot / CUDA INT8 GEMM,23.43,23.43,185.35,4.92,20.14,216.57,216.57,31850,203.4,198.0,4639,1652.72,16.62,11.91,默认（--bf16-vae）
+external,Intel Arc Pro B70,服务器 A,1344×768,32 GB,—,INT8 ConvRot / XPU eager,40.29,41.25,322.30,,,,478.30,29082,,,13406,,,,无 DynamicVRAM；仅 1 个有效跑次
+external,AMD Radeon AI PRO R9700（默认）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm hip,44.92,45.99,359.40,,,,448.30,28774,,,13475,,,,hip + DynamicVRAM（pinned 54.6 GB）
+external,R9700 nodyn（关 DynamicVRAM）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm hip,44.97,46.04,359.80,,,,690.10,29389,,,13168,,,,与 B70 同为旧式装载，墙钟被读盘拖累
+external,R9700 ckt（triton 优先）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm triton,46.14,47.24,369.10,,,,509.50,30925,,,13652,,,,"COMFY_CK_PRIORITY=triton,hip,eager；整段反而更慢"
