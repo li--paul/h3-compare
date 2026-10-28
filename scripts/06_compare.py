@@ -71,6 +71,33 @@ EXTERNAL = [
     },
 ]
 
+# Same B60 card, different runtimes, from li--paul/h3-comfyui-xpu perf.md.
+RUNTIME_TIERS = [
+    {
+        "name": "ComfyUI 0.39 交付包", "step": 70.1, "e2e": 652.0, "vram_gib": 21.4,
+        "kernel": "INT8 ConvRot / stock BF16", "note": "现有 B60 基准",
+    },
+    {
+        "name": "ComfyUI 0.42（h3-comfyui-xpu）", "step": 70.1, "e2e": 652.0, "vram_gib": 21.4,
+        "kernel": "INT8 ConvRot / stock BF16", "note": "与 0.39 逐像素一致",
+    },
+    {
+        "name": "B60 + Intel 镜像 dense", "step": 46.4, "e2e": 470.2, "vram_gib": 21.4,
+        "kernel": "native INT8 + CUTE", "note": "1.51× vs stock（仓库自述 1.39×）",
+    },
+    {
+        "name": "B60 + SOL（start=0.0）", "step": 36.97, "e2e": 370.2, "vram_gib": 21.4,
+        "kernel": "native INT8 + SOL", "note": "1.27× vs dense；改变采样轨迹",
+    },
+]
+
+# Different runtimes / card counts: kept out of the single-card ranking.
+OTHER_RUNTIMES = [
+    {"name": "vLLM-Omni FP8 + LoRA", "cards": 2, "e2e": "338–349 s", "vram": "14.7 GiB/rank"},
+    {"name": "vLLM-Omni BF16 + LoRA", "cards": 2, "e2e": "375 s", "vram": "18.7 GiB/rank"},
+    {"name": "diffusers BF16 layer-streamed", "cards": 1, "e2e": "920 s", "vram": "17.6 GiB"},
+]
+
 
 def med(vals):
     vals = [v for v in vals if v is not None]
@@ -195,11 +222,18 @@ def main():
                         f(r["step"], 2), f(ext_step(r), 2), f(r["sampling"], 2), "", "",
                         "", f(r["wall"], 2), f(r["peak_vram_gib"] * 1024, 0), "",
                         "", f(ext_energy(r), 0), "", "", "", r["note"]])
+        for r in RUNTIME_TIERS:
+            gpx = r["e2e"] / GPX
+            sph = 3600 / r["e2e"]
+            w.writerow(["runtime-tier", r["name"], "XPU host", "1376x768", "24 GB", "—",
+                        r["kernel"], f(r["step"], 2), f(r["step"], 2), f(8 * r["step"], 2),
+                        "", "", f(r["e2e"], 2), f(r["e2e"], 2), f(r["vram_gib"] * 1024, 0),
+                        "", "", "", f(gpx, 2), f(sph, 2), "", r["note"]])
 
     # ---------------------------------------------------------------- Markdown
     L = []
     A = L.append
-    A("# MiniMax-H3 Ref2VA 单卡性能对比（同机 + 外部参考）")
+    A("# MiniMax-H3 Ref2VA 单卡性能对比（同机 + 外部参考 + XPU 运行时分层）")
     A("")
     A("统一条件：REF2VA / 124 帧 / 8 步 / CFG 1.0 / res_multistep+beta / batch 1 / INT8 ConvRot。")
     A("同机三行使用同一份输入、同一工作流、同一组权重（sha256 见 `results/sha256.txt`）。")
@@ -244,6 +278,31 @@ def main():
     A("  R9700 默认跑次的利用率列是中途补采的。")
     A("")
 
+    A("## XPU 运行时分层（同一张 B60，1376×768）")
+    A("")
+    A("来源：`https://github.com/li--paul/h3-comfyui-xpu`（`perf.md`，2026-10-22/27）。")
+    A("")
+    A("| 路径 | 精度 / kernel | 单步 | 8 步采样 | 端到端 | 峰值显存 | 相对 stock | 备注 |")
+    A("| --- | --- | --- | --- | --- | --- | --- | --- |")
+    for r in RUNTIME_TIERS:
+        A(f"| {r['name']} | {r['kernel']} | {f(r['step'], 2)} s | {f(8 * r['step'])} s | "
+          f"{f(r['e2e'])} s | {f(r['vram_gib'])} GB | {70.1 / r['step']:.2f}× | {r['note']} |")
+    A("")
+    A("- stock ComfyUI 的 INT8 只是存储格式，matmul 走 BF16；Intel 镜像才提供 native `int8_linear` + CUTE attention。")
+    A("- 仓库自述“1.39×”，但按 70.1 / 46.4 计算为 1.51×；这里以原始单步为准。")
+    A("- SOL 会改变采样轨迹（相对 dense 的 PSNR 18–26 dB），画面结构一致但细节不同，**不是同配置**。")
+    A("- Intel 镜像 dense / SOL 未测功耗，因此不进入“每步能耗”排序。")
+    A("")
+    A("### 其他运行时（不同卡数/图，不并入单卡排序）")
+    A("")
+    A("| 路径 | 卡数 | 端到端 | 显存/卡 |")
+    A("| --- | --- | --- | --- |")
+    for r in OTHER_RUNTIMES:
+        A(f"| {r['name']} | {r['cards']} | {r['e2e']} | {r['vram']} |")
+    A("")
+    A("- vLLM-Omni 是 2 卡 TP2 + DLO；diffusers 是单卡 layer-streamed。两者都不是单卡 ComfyUI 的同口径对比。")
+    A("")
+
     A("## 跨报告结论（归一化后）")
     A("")
     A("### 去噪算力")
@@ -255,13 +314,17 @@ def main():
         ranked.append((r["step"], r["name"], "同机"))
     for r in EXTERNAL:
         ranked.append((ext_step(r), r["name"], "服务器 A"))
+    for r in RUNTIME_TIERS[2:]:  # dense + SOL; stock B60 is already in rows
+        ranked.append((r["step"], r["name"], "XPU 运行时"))
     b70_step = ext_step(EXTERNAL[0])
     for i, (step, name, src) in enumerate(sorted(ranked), start=1):
         A(f"| {i} | {name} | {f(step)} s | {step/b70_step:.2f}× | {src} |")
     A("")
     A("- PRO 4500 与 Ada 基本持平（3% 以内）；两者比 B70 快约 1.76× / 1.72×。")
+    A("- **B60 的 stock 70.1 s/步不是硬件上限**：Intel 镜像 dense 46.4 s（1.51×）、")
+    A("  SOL 36.97 s（1.90×）。换运行时后，B60 与 PRO 4500 的差距从 3.0× 缩到 1.6×（SOL）/ 2.0×（dense）。")
+    A("- B70 的 40.29 s/步仍是 eager 后端；若换 Intel 镜像可能继续下降（未测，不写入表）。")
     A("- B70 比 R9700 默认快约 11%；R9700 nodyn 与默认去噪相同，慢在装载。")
-    A("- B60 比 B70 慢 1.70×，比 PRO 4500 慢约 3.0×。")
     A("")
     A("### 每步能耗")
     A("")
@@ -318,6 +381,11 @@ def main():
     A("")
     A("- **B60 数据**：`results/sources/h3单卡测试总结_20261022.md`，.118 机器单卡 REF2VA；")
     A("  提示词为《神笔马良》第 1 段，与 NVIDIA 两轮的《草船借箭》不是逐字节同输入。")
+    A("- **B60 功耗/显存两套数据**：主表用 20.2 GB / 181 W peak / 148 W avg；")
+    A("  `h3-comfyui-xpu/perf.md` 用 sysfs 测得 21.4 GB / 139 W mean / 164 W peak。")
+    A("  采样方法不同（原采样器 vs xe sysfs），不要混算或直接替换。")
+    A("- **XPU 运行时分层**：`results/sources/h3-comfyui-xpu-perf.md`；Intel 镜像是容器运行时，")
+    A("  native INT8 + CUTE/SOL，不等同于交付包或本机 CUDA 路径。SOL 改变采样轨迹，不是同配置。")
     A("- **同权重、不同 kernel**：CUDA 上 `int8_tensorwise` 是 native INT8 GEMM；Intel XPU 上该算子被禁用，")
     A("  权重反量化后以 BF16 计算；R9700 走 ROCm hip。加速比不应全部归因于硬件。")
     A("- **Blackwell 原生算子**：PRO 4500 上 `int8_tensorwise`、`convrot_w4a4`、`nvfp4`、`mxfp8` 均为 native；")

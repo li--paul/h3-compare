@@ -1,4 +1,4 @@
-# MiniMax-H3 Ref2VA 单卡性能对比（同机 + 外部参考）
+# MiniMax-H3 Ref2VA 单卡性能对比（同机 + 外部参考 + XPU 运行时分层）
 
 统一条件：REF2VA / 124 帧 / 8 步 / CFG 1.0 / res_multistep+beta / batch 1 / INT8 ConvRot。
 同机三行使用同一份输入、同一工作流、同一组权重（sha256 见 `results/sha256.txt`）。
@@ -34,6 +34,32 @@
 - 数据质量：B70 只有 1 个有效跑次；R9700 nodyn 成片亮度异常（110.1 vs 117.0）未查；
   R9700 默认跑次的利用率列是中途补采的。
 
+## XPU 运行时分层（同一张 B60，1376×768）
+
+来源：`https://github.com/li--paul/h3-comfyui-xpu`（`perf.md`，2026-10-22/27）。
+
+| 路径 | 精度 / kernel | 单步 | 8 步采样 | 端到端 | 峰值显存 | 相对 stock | 备注 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| ComfyUI 0.39 交付包 | INT8 ConvRot / stock BF16 | 70.10 s | 560.8 s | 652.0 s | 21.4 GB | 1.00× | 现有 B60 基准 |
+| ComfyUI 0.42（h3-comfyui-xpu） | INT8 ConvRot / stock BF16 | 70.10 s | 560.8 s | 652.0 s | 21.4 GB | 1.00× | 与 0.39 逐像素一致 |
+| B60 + Intel 镜像 dense | native INT8 + CUTE | 46.40 s | 371.2 s | 470.2 s | 21.4 GB | 1.51× | 1.51× vs stock（仓库自述 1.39×） |
+| B60 + SOL（start=0.0） | native INT8 + SOL | 36.97 s | 295.8 s | 370.2 s | 21.4 GB | 1.90× | 1.27× vs dense；改变采样轨迹 |
+
+- stock ComfyUI 的 INT8 只是存储格式，matmul 走 BF16；Intel 镜像才提供 native `int8_linear` + CUTE attention。
+- 仓库自述“1.39×”，但按 70.1 / 46.4 计算为 1.51×；这里以原始单步为准。
+- SOL 会改变采样轨迹（相对 dense 的 PSNR 18–26 dB），画面结构一致但细节不同，**不是同配置**。
+- Intel 镜像 dense / SOL 未测功耗，因此不进入“每步能耗”排序。
+
+### 其他运行时（不同卡数/图，不并入单卡排序）
+
+| 路径 | 卡数 | 端到端 | 显存/卡 |
+| --- | --- | --- | --- |
+| vLLM-Omni FP8 + LoRA | 2 | 338–349 s | 14.7 GiB/rank |
+| vLLM-Omni BF16 + LoRA | 2 | 375 s | 18.7 GiB/rank |
+| diffusers BF16 layer-streamed | 1 | 920 s | 17.6 GiB |
+
+- vLLM-Omni 是 2 卡 TP2 + DLO；diffusers 是单卡 layer-streamed。两者都不是单卡 ComfyUI 的同口径对比。
+
 ## 跨报告结论（归一化后）
 
 ### 去噪算力
@@ -42,15 +68,19 @@
 | --- | --- | --- | --- | --- |
 | 1 | NVIDIA RTX PRO 4500 Blackwell | 23.4 s | 0.57× | 同机 |
 | 2 | NVIDIA RTX 6000 Ada Generation | 24.0 s | 0.58× | 同机 |
-| 3 | Intel Arc Pro B70 | 41.2 s | 1.00× | 服务器 A |
-| 4 | AMD Radeon AI PRO R9700（默认） | 46.0 s | 1.11× | 服务器 A |
-| 5 | R9700 nodyn（关 DynamicVRAM） | 46.0 s | 1.12× | 服务器 A |
-| 6 | R9700 ckt（triton 优先） | 47.2 s | 1.15× | 服务器 A |
-| 7 | Intel Arc Pro B60 | 70.0 s | 1.70× | 同机 |
+| 3 | B60 + SOL（start=0.0） | 37.0 s | 0.90× | XPU 运行时 |
+| 4 | Intel Arc Pro B70 | 41.2 s | 1.00× | 服务器 A |
+| 5 | AMD Radeon AI PRO R9700（默认） | 46.0 s | 1.11× | 服务器 A |
+| 6 | R9700 nodyn（关 DynamicVRAM） | 46.0 s | 1.12× | 服务器 A |
+| 7 | B60 + Intel 镜像 dense | 46.4 s | 1.12× | XPU 运行时 |
+| 8 | R9700 ckt（triton 优先） | 47.2 s | 1.15× | 服务器 A |
+| 9 | Intel Arc Pro B60 | 70.0 s | 1.70× | 同机 |
 
 - PRO 4500 与 Ada 基本持平（3% 以内）；两者比 B70 快约 1.76× / 1.72×。
+- **B60 的 stock 70.1 s/步不是硬件上限**：Intel 镜像 dense 46.4 s（1.51×）、
+  SOL 36.97 s（1.90×）。换运行时后，B60 与 PRO 4500 的差距从 3.0× 缩到 1.6×（SOL）/ 2.0×（dense）。
+- B70 的 40.29 s/步仍是 eager 后端；若换 Intel 镜像可能继续下降（未测，不写入表）。
 - B70 比 R9700 默认快约 11%；R9700 nodyn 与默认去噪相同，慢在装载。
-- B60 比 B70 慢 1.70×，比 PRO 4500 慢约 3.0×。
 
 ### 每步能耗
 
@@ -88,6 +118,11 @@ PRO 4500 用 2/3 的功耗和 2/3 的显存达到同样速度。
 
 - **B60 数据**：`results/sources/h3单卡测试总结_20261022.md`，.118 机器单卡 REF2VA；
   提示词为《神笔马良》第 1 段，与 NVIDIA 两轮的《草船借箭》不是逐字节同输入。
+- **B60 功耗/显存两套数据**：主表用 20.2 GB / 181 W peak / 148 W avg；
+  `h3-comfyui-xpu/perf.md` 用 sysfs 测得 21.4 GB / 139 W mean / 164 W peak。
+  采样方法不同（原采样器 vs xe sysfs），不要混算或直接替换。
+- **XPU 运行时分层**：`results/sources/h3-comfyui-xpu-perf.md`；Intel 镜像是容器运行时，
+  native INT8 + CUTE/SOL，不等同于交付包或本机 CUDA 路径。SOL 改变采样轨迹，不是同配置。
 - **同权重、不同 kernel**：CUDA 上 `int8_tensorwise` 是 native INT8 GEMM；Intel XPU 上该算子被禁用，
   权重反量化后以 BF16 计算；R9700 走 ROCm hip。加速比不应全部归因于硬件。
 - **Blackwell 原生算子**：PRO 4500 上 `int8_tensorwise`、`convrot_w4a4`、`nvfp4`、`mxfp8` 均为 native；

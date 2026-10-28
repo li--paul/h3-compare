@@ -11,7 +11,19 @@
 | RTX 6000 Ada 48 GB | 24.0 s | 223 s | 47.2 GB | 297 W | 7.1 kJ | 18.4 Wh |
 | RTX PRO 4500 32 GB | 23.4 s | 217 s | 31.1 GB | 198 W | 4.6 kJ | 11.9 Wh |
 
-PRO 4500 与 Ada 基本持平（3% 以内），但功耗约为 2/3；两者都比 B60 快约 3 倍。
+PRO 4500 与 Ada 基本持平（3% 以内），但功耗约为 2/3。B60 的 70 s/步是 **stock ComfyUI** 的结果；
+换 Intel 运行时后同一张 B60 可到 46.4 s/步（dense）或 37.0 s/步（SOL）。
+
+### XPU 运行时分层（同一张 B60）
+
+| 路径 | 单步 | 端到端 | 说明 |
+|---|---:|---:|---|
+| ComfyUI 0.39 / 0.42 stock | 70.1 s | 652 s | 交付包基准；INT8 仅存储，BF16 计算 |
+| Intel `llm-scaler-omni` 镜像 dense | 46.4 s | 470 s | native INT8 + CUTE attention，1.51× |
+| 同上 + SOL（start=0.0） | 37.0 s | 370 s | 稀疏注意力，1.90×；会改变采样轨迹 |
+
+来源：<https://github.com/li--paul/h3-comfyui-xpu> 的 `perf.md`；本地存档在
+`results/sources/h3-comfyui-xpu-perf.md`。
 
 外部参考（服务器 A，1344×768，单步已归一化到 1376×768）：
 
@@ -22,7 +34,8 @@ PRO 4500 与 Ada 基本持平（3% 以内），但功耗约为 2/3；两者都�
 | R9700 nodyn | 46.0 s | 360 s | 690 s | 13.2 kJ |
 
 **墙钟不可跨主机比较**：服务器 A 是 61 GB 内存 + PCIe Gen4，且 B70 没有 XPU 版 DynamicVRAM。
-去噪算力排序为 PRO 4500 ≈ Ada > B70 > R9700 > B60；每步能耗则是 PRO 4500 < Ada < B60 < B70 ≈ R9700。
+去噪算力排序（含运行时分层）：PRO 4500 ≈ Ada > B60+SOL > B70 > R9700 ≈ B60+Intel dense > B60 stock。
+每步能耗则是 PRO 4500 < Ada < B60 < B70 ≈ R9700。
 
 ## 一键运行
 

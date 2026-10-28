@@ -6,3 +6,7 @@ external,Intel Arc Pro B70,服务器 A,1344×768,32 GB,—,INT8 ConvRot / XPU ea
 external,AMD Radeon AI PRO R9700（默认）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm hip,44.92,45.99,359.40,,,,448.30,28774,,,13475,,,,hip + DynamicVRAM（pinned 54.6 GB）
 external,R9700 nodyn（关 DynamicVRAM）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm hip,44.97,46.04,359.80,,,,690.10,29389,,,13168,,,,与 B70 同为旧式装载，墙钟被读盘拖累
 external,R9700 ckt（triton 优先）,服务器 A,1344×768,32 GB,—,INT8 ConvRot / ROCm triton,46.14,47.24,369.10,,,,509.50,30925,,,13652,,,,"COMFY_CK_PRIORITY=triton,hip,eager；整段反而更慢"
+runtime-tier,ComfyUI 0.39 交付包,XPU host,1376x768,24 GB,—,INT8 ConvRot / stock BF16,70.10,70.10,560.80,,,652.00,652.00,21914,,,,4975.61,5.52,,现有 B60 基准
+runtime-tier,ComfyUI 0.42（h3-comfyui-xpu）,XPU host,1376x768,24 GB,—,INT8 ConvRot / stock BF16,70.10,70.10,560.80,,,652.00,652.00,21914,,,,4975.61,5.52,,与 0.39 逐像素一致
+runtime-tier,B60 + Intel 镜像 dense,XPU host,1376x768,24 GB,—,native INT8 + CUTE,46.40,46.40,371.20,,,470.20,470.20,21914,,,,3588.24,7.66,,1.51× vs stock（仓库自述 1.39×）
+runtime-tier,B60 + SOL（start=0.0）,XPU host,1376x768,24 GB,—,native INT8 + SOL,36.97,36.97,295.76,,,370.20,370.20,21914,,,,2825.11,9.72,,1.27× vs dense；改变采样轨迹

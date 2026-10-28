@@ -61,6 +61,10 @@ bash scripts/stop.sh
 9. **外部基准数字以 `results/sources/` 的实测报告为准**：
    - B60：`h3单卡测试总结_20261022.md`（653 s / 采样 563 s / 70 s 一步 / 20.2 GB / 181 W）。
    - B70、R9700：`report-r9700-vs-b70.md`（1344×768；B70 40.29 s/步，R9700 默认 44.92 s/步）。
+   - B60 运行时分层：`h3-comfyui-xpu-perf.md`（stock 70.1 s/步；Intel 镜像 dense 46.4；SOL 36.97）。
+     来源 <https://github.com/li--paul/h3-comfyui-xpu>。
+   - **B60 功耗/显存有两套**：summary 20.2 GB / 181 W peak / 148 W avg；perf.md sysfs
+     21.4 GB / 139 W mean / 164 W peak。采样方法不同，不可混算。
    不要引用环境清单 §10 的“单卡 10.8 min”，它与同节分项（2+10.5+1=13.5 min）矛盾。
 10. **报告是生成物**：`results/<tag>/report.md` 由 `05_report.py` 生成，
     `results/comparison.md` 由 `06_compare.py` 生成。改脚本后重跑对应 `.sh`。
@@ -74,12 +78,15 @@ bash scripts/stop.sh
 
 ## 已知结果（详见 results/comparison.md）
 
-- B60：70 s/步，单段 653 s，12.7 kJ/步，26.8 Wh/段。
+- B60 stock ComfyUI：70.1 s/步，652 s，12.7 kJ/步，26.8 Wh/段。
+- B60 + Intel `llm-scaler-omni` 镜像 dense：46.4 s/步，470 s（native INT8 + CUTE，1.51×）。
+- B60 + SOL（start=0.0）：36.97 s/步，370 s（1.90×，但改变采样轨迹，不是同配置）。
 - RTX 6000 Ada：24.0 s/步，单段 223 s，7.1 kJ/步，18.4 Wh/段。
 - RTX PRO 4500：23.4 s/步，单段 217 s，4.6 kJ/步，11.9 Wh/段。
 - B70（外部，1344→1376）：41.2 s/步，322 s 去噪，13.4 kJ/步；墙钟 478 s（无 DynamicVRAM）。
 - R9700 默认（外部）：46.0 s/步，359 s 去噪，13.5 kJ/步；墙钟 448 s（开 DynamicVRAM）。
-- 去噪排序：PRO 4500 ≈ Ada > B70 > R9700 > B60；每步能耗：PRO 4500 < Ada < B60 < B70 ≈ R9700。
+- 去噪排序（含运行时分层）：PRO 4500 ≈ Ada > B60+SOL > B70 > R9700 ≈ B60+dense > B60 stock。
+  每步能耗：PRO 4500 < Ada < B60 < B70 ≈ R9700。
 
 ## 权重来源（重下时用）
 
