@@ -1,0 +1,11 @@
+rank,card_config,type,vendor,per_step_1376_s,e2e_s,peak_vram_gib,peak_power_w,avg_power_w,speedup_vs_b60_stock,psnr_db,ssim,note
+1,NVIDIA RTX PRO 4500 + SOL,NVIDIA 优化,NVIDIA,9.80,115.30,31.3,203.3,195.9,7.14,18.01,0.713,同量化最快；tau=1.3；改变采样轨迹
+2,NVIDIA RTX PRO 4500 + SageAttention 2.2,NVIDIA 优化,NVIDIA,16.42,161.10,31.1,203.6,198.8,4.26,21.46,0.804,需源码编译 SageAttention 2.2.0
+3,NVIDIA RTX PRO 4500 + CK attention,NVIDIA 优化,NVIDIA,16.57,162.30,31.2,203.2,198.7,4.22,23.05,0.814,画质优先；PSNR 最接近基线
+4,NVIDIA RTX PRO 4500（基线）,基线,NVIDIA,23.43,216.60,31.1,203.4,198.0,2.99,—,—,PyTorch attention；32 GB aimdo 换入
+5,NVIDIA RTX 6000 Ada,基线,NVIDIA,24.04,223.30,47.2,303.5,297.3,2.91,—,—,48 GB 全驻留
+6,Intel Arc Pro B60 + SOL,XPU 优化,Intel,36.97,370.20,21.4,—,—,1.89,—,—,Intel llm-scaler 镜像；稀疏注意力
+7,Intel Arc Pro B70,基线,Intel,41.25,478.30,28.4,325.0,—,1.70,—,—,1344→1376 归一化；无 DynamicVRAM
+8,AMD Radeon AI PRO R9700,基线,AMD,45.99,448.30,28.1,293.0,—,1.52,—,—,1344→1376 归一化；开 DynamicVRAM
+9,Intel Arc Pro B60 + Intel dense,XPU 优化,Intel,46.40,470.20,21.4,—,—,1.51,—,—,Intel 镜像 dense；native INT8 + CUTE
+10,Intel Arc Pro B60（stock）,基线,Intel,70.00,653.00,20.2,181.0,148.0,1.00,—,—,交付包；INT8 仅存储、BF16 计算

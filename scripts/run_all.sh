@@ -18,6 +18,7 @@ bash "$ROOT/scripts/03_serve.sh"
 bash "$ROOT/scripts/04_bench.sh"
 bash "$ROOT/scripts/05_report.sh"
 bash "$ROOT/scripts/06_compare.sh"
+bash "$ROOT/scripts/10_all_cards.sh"
 bash "$ROOT/scripts/stop.sh"
 
 echo "all phases complete: $(date -Is)"

@@ -3,7 +3,7 @@
 按 XPU 交付包（`MiniMax-H3_环境与模型版本清单.md`）的 Ref2VA 默认配置，在不同卡上
 跑同一组 INT8 ConvRot 权重，比较分段耗时、显存和功耗。
 
-当前结论见 `results/comparison.md`：
+全卡一张表（Intel / AMD / NVIDIA）见 `results/all-cards.md`；当前结论见 `results/comparison.md`。
 
 | 卡 | 单步 | 单段 | 峰值显存 | 平均功耗 | 每步能耗 | 段能耗 |
 |---|---|---|---|---|---|---|
@@ -73,6 +73,7 @@ RUN_TAG=rtxpro4500 bash scripts/03_serve.sh     # 启动 ComfyUI (127.0.0.1:8190
 RUN_TAG=rtxpro4500 bash scripts/04_bench.sh     # 冷启动 + 2 次热跑
 RUN_TAG=rtxpro4500 bash scripts/05_report.sh    # 生成 results/<tag>/report.md
 bash scripts/06_compare.sh                     # 生成 results/comparison.md / .csv
+bash scripts/10_all_cards.sh                   # 生成 results/all-cards.md / .csv
 bash scripts/stop.sh
 ```
 

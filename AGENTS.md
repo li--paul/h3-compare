@@ -111,6 +111,7 @@ bash scripts/stop.sh
 
 - `results/<tag>/timings.json` —— 逐 run、逐 step 原始计时；`timings.csv` —— 汇总。
 - `results/nvidia-optimizations.md` —— NVIDIA 运行时优化（SOL / CK / Sage / W6A8 / FP8）总表。
+- `results/all-cards.md` —— Intel / AMD / NVIDIA 全卡一张表。
 - `results/sources/` —— B60 实测总结、B70/R9700 对比报告（外部参考表的原始数据）。
 - `logs/<tag>/nvidia-smi_*.csv` —— 1 Hz 显存/功耗/时钟；`comfy_*.log` —— 服务日志。
 - `output/<tag>/bench/*.mp4` —— 1376×768 / 124 帧 / 24 fps / AAC 32 kHz 立体声。
