@@ -37,6 +37,24 @@ PRO 4500 与 Ada 基本持平（3% 以内），但功耗约为 2/3。B60 的 70 
 去噪算力排序（含运行时分层）：PRO 4500 ≈ Ada > B60+SOL > B70 > R9700 ≈ B60+Intel dense > B60 stock。
 每步能耗则是 PRO 4500 < Ada < B60 < B70 ≈ R9700。
 
+### NVIDIA 运行时优化（RTX PRO 4500，同 INT8 权重）
+
+| 配置 | 单步 | 端到端 | 相对基线 | PSNR / SSIM | 说明 |
+|---|---:|---:|---:|---|---|
+| INT8 baseline | 23.4 s | 217 s | 1.00× | — | PyTorch attention |
+| **INT8 + SOL tau=1.3** | **9.8 s** | **115 s** | **2.39×** | 18.0 dB / 0.713 | 推荐；同量化，最快 |
+| INT8 + SOL tau=2.0 | 9.1 s | 105 s | 2.58× | 14.3 dB / 0.600 | 太快导致构图偏移，不推荐 |
+| INT8 + CK attention | 16.6 s | 162 s | 1.41× | 23.1 dB / 0.814 | 画质优先 |
+| INT8 + SageAttention 2.2 | 16.4 s | 161 s | 1.43× | 21.5 dB / 0.804 | 需源码编译 2.2.0 |
+| W6A8（官方） | 24.5 s | 226 s | 0.96× | 20.4 dB / 0.789 | 32 GB 上更慢 |
+| FP8 scaled（官方） | 26.2 s | 240 s | 0.89× | 20.8 dB / 0.758 | 32 GB 上更慢 |
+
+完整表格与启动参数见 `results/nvidia-optimizations.md`。
+
+- SOL 用 `BlockSparseAttention` 节点，`selection=sol-attn`、`tau=1.3`、`start_percent=0.0`、`sink_conditioning=exact_kv_and_rows`。
+- SageAttention 2.2.0 不在 PyPI；需从 `thu-ml/SageAttention@v2.2.0` 源码编译（C++20；CUDA 13.1 + 12.8 的 cuBLAS/cuSPARSE 头）。
+- `--fast cublas_ops autotune` 只有 1.01×，且同 seed 输出会变化，不建议作为默认。
+
 ## 一键运行
 
 每张卡的数据按 `RUN_TAG` 隔离：

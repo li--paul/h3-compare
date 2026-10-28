@@ -1,0 +1,4 @@
+label,seed,total_compute_s,conditioning_s,sampling_total_s,step_median_s,step_min_s,step_max_s,vae_video_s,vae_audio_s,save_s,wall_s,output
+cold,1001,112.60,5.42,83.95,10.06,9.82,13.88,20.39,0.16,2.01,112.79,/home/acm/work/nv_h3/output/rtxpro4500-sol-sage/bench/h3_ref2va_1376x768_00001_.mp4
+warm,1002,111.58,4.81,83.76,10.00,9.82,13.94,20.41,0.15,2.21,111.78,/home/acm/work/nv_h3/output/rtxpro4500-sol-sage/bench/h3_ref2va_1376x768_00002_.mp4
+warm,1003,112.29,4.88,84.12,10.09,9.86,13.73,20.41,0.15,2.50,112.29,/home/acm/work/nv_h3/output/rtxpro4500-sol-sage/bench/h3_ref2va_1376x768_00003_.mp4

@@ -10,3 +10,6 @@ __pycache__/
 
 # Incomplete downloads
 *.incomplete
+
+# Optimization-run videos are local artifacts (reports/timings are committed)
+output/rtxpro4500-*/

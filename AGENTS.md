@@ -75,6 +75,15 @@ bash scripts/stop.sh
 13. **跨报告墙钟不可直接比较**：B70 478.3 s vs R9700 默认 448.3 s 的差距主要来自 DynamicVRAM
     （R9700 开、B70 没有）；关掉后 R9700 变成 690.1 s。比较算力请用“单步@1376”，
     外部 1344×768 数据乘 `1.0238`；比较能耗用“单步 × 忙碌功耗”。
+14. **SOL 是 NVIDIA 侧最大收益**：`BlockSparseAttention` + `selection=sol-attn` + `tau=1.3` +
+    `start_percent=0.0` + `sink_conditioning=exact_kv_and_rows`，9.8 s/步 / 2.39×。
+    API 里动态组合用平铺键（`"selection": "sol-attn"`、`"selection.tau": 1.3`），不要嵌套。
+    `verbose=true` 应打印 `sparse producer path: ... tokens`；tau=2.0 会掉到 PSNR 14.3，不推荐。
+15. **SageAttention 2.2.0 不在 PyPI**：只有 1.0.6。需从 `thu-ml/SageAttention@v2.2.0` 源码编译：
+    C++20、CUDA 13.1 编译，`cusparse.h`/`cublas_v2.h` 从 CUDA 12.8 头目录补进兼容 include；
+    装完用 `--use-sage-attention`，实测 16.4 s/步 / 1.43×。
+16. **`--fast cublas_ops autotune` 会改数值**：同 seed 输出与基线不同（PSNR 21.8 dB），
+    速度只有 1.01×；不要把它当成“无损加速”。W6A8/FP8 在 32 GB 上也被 27 GB TE 拖慢，反而更慢。
 
 ## 已知结果（详见 results/comparison.md）
 
@@ -85,6 +94,9 @@ bash scripts/stop.sh
 - RTX PRO 4500：23.4 s/步，单段 217 s，4.6 kJ/步，11.9 Wh/段。
 - B70（外部，1344→1376）：41.2 s/步，322 s 去噪，13.4 kJ/步；墙钟 478 s（无 DynamicVRAM）。
 - R9700 默认（外部）：46.0 s/步，359 s 去噪，13.5 kJ/步；墙钟 448 s（开 DynamicVRAM）。
+- RTX PRO 4500 同量化优化：SOL tau=1.3 **9.8 s/步 / 115 s / 2.39×**（PSNR 18.0）；
+  CK attention 16.6 s / 1.41×（PSNR 23.1）；Sage2.2 16.4 s / 1.43×（PSNR 21.5）。
+  W6A8 24.5 s、FP8 26.2 s，在 32 GB 上反而更慢。
 - 去噪排序（含运行时分层）：PRO 4500 ≈ Ada > B60+SOL > B70 > R9700 ≈ B60+dense > B60 stock。
   每步能耗：PRO 4500 < Ada < B60 < B70 ≈ R9700。
 
@@ -98,6 +110,7 @@ bash scripts/stop.sh
 ## 关键产物
 
 - `results/<tag>/timings.json` —— 逐 run、逐 step 原始计时；`timings.csv` —— 汇总。
+- `results/nvidia-optimizations.md` —— NVIDIA 运行时优化（SOL / CK / Sage / W6A8 / FP8）总表。
 - `results/sources/` —— B60 实测总结、B70/R9700 对比报告（外部参考表的原始数据）。
 - `logs/<tag>/nvidia-smi_*.csv` —— 1 Hz 显存/功耗/时钟；`comfy_*.log` —— 服务日志。
 - `output/<tag>/bench/*.mp4` —— 1376×768 / 124 帧 / 24 fps / AAC 32 kHz 立体声。

@@ -1,0 +1,4 @@
+psnr_avg=18.226643
+ssim_all=0.718433
+baseline=/home/acm/work/nv_h3/output/rtxpro4500/bench/h3_ref2va_1376x768_00001_.mp4
+candidate=/home/acm/work/nv_h3/output/rtxpro4500-sol-tau10/bench/h3_ref2va_1376x768_00001_.mp4

@@ -16,7 +16,7 @@ export TS="${TS:-$(date +%Y%m%d_%H%M%S)}"
 export MODELS="$ROOT/models"
 export INPUT_DIR="$ROOT/input"
 export TMP_DIR="$ROOT/tmp"
-export WORKFLOW="$ROOT/workflows/ref2va_1376x768_8step.json"
+export WORKFLOW="${WORKFLOW:-$ROOT/workflows/ref2va_1376x768_8step.json}"
 export CONFIG="$ROOT/config/extra_model_paths.yaml"
 
 # Per-card isolation: each card writes into its own results/output/logs subtree.

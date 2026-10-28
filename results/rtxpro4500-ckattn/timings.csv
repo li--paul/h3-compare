@@ -1,0 +1,4 @@
+label,seed,total_compute_s,conditioning_s,sampling_total_s,step_median_s,step_min_s,step_max_s,vae_video_s,vae_audio_s,save_s,wall_s,output
+cold,1001,163.57,5.53,131.46,16.57,13.52,18.51,20.39,0.20,1.83,163.57,/home/acm/work/nv_h3/output/rtxpro4500-ckattn/bench/h3_ref2va_1376x768_00001_.mp4
+warm,1002,162.31,4.93,131.43,16.57,13.57,18.50,20.36,0.17,2.38,162.52,/home/acm/work/nv_h3/output/rtxpro4500-ckattn/bench/h3_ref2va_1376x768_00002_.mp4
+warm,1003,160.37,5.03,130.36,16.31,13.64,18.71,19.51,0.14,2.43,160.58,/home/acm/work/nv_h3/output/rtxpro4500-ckattn/bench/h3_ref2va_1376x768_00003_.mp4

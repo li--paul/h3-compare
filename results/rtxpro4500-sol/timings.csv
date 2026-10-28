@@ -1,0 +1,4 @@
+label,seed,total_compute_s,conditioning_s,sampling_total_s,step_median_s,step_min_s,step_max_s,vae_video_s,vae_audio_s,save_s,wall_s,output
+cold,1001,117.66,8.95,84.11,9.70,9.38,16.58,20.87,0.30,2.21,117.86,/home/acm/work/nv_h3/output/rtxpro4500-sol/bench/h3_ref2va_1376x768_00001_.mp4
+warm,1002,109.14,4.94,81.93,9.80,9.52,13.68,20.05,0.19,1.81,109.34,/home/acm/work/nv_h3/output/rtxpro4500-sol/bench/h3_ref2va_1376x768_00002_.mp4
+warm,1003,115.26,4.88,86.52,10.31,9.92,13.60,20.62,0.17,2.82,115.48,/home/acm/work/nv_h3/output/rtxpro4500-sol/bench/h3_ref2va_1376x768_00003_.mp4

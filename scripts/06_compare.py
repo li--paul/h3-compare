@@ -237,6 +237,7 @@ def main():
     A("")
     A("统一条件：REF2VA / 124 帧 / 8 步 / CFG 1.0 / res_multistep+beta / batch 1 / INT8 ConvRot。")
     A("同机三行使用同一份输入、同一工作流、同一组权重（sha256 见 `results/sha256.txt`）。")
+    A("NVIDIA 运行时优化（SOL / CK / Sage / W6A8 / FP8）见 `results/nvidia-optimizations.md`。")
     A("")
     A("## 同机基准（1376×768）")
     A("")

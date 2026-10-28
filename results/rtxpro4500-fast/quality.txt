@@ -1,0 +1,4 @@
+psnr_avg=21.802913
+ssim_all=0.802606
+baseline=/home/acm/work/nv_h3/output/rtxpro4500/bench/h3_ref2va_1376x768_00001_.mp4
+candidate=/home/acm/work/nv_h3/output/rtxpro4500-fast/bench/h3_ref2va_1376x768_00001_.mp4
